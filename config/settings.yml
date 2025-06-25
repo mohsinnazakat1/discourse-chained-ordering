@@ -1,0 +1,4 @@
+plugins:
+  chained_ordering_enabled:
+    default: true
+    description: "Enable chained ordering functionality for topics"
