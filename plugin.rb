@@ -14,7 +14,7 @@ after_initialize do
   TopicQuery.class_eval do
     # Update the validator to allow arrays for the order parameter
     @validators = nil  # Clear cached validators
-    
+
     def self.validators
       @validators ||=
         begin
@@ -26,34 +26,33 @@ after_initialize do
           true_or_false = lambda { |x| x == true || x == false || x == "true" || x == "false" }
 
           {
-            page: zero_up_to_max_int,
-            per_page: one_up_to_one_hundred,
             before: zero_up_to_max_int,
             bumped_before: zero_up_to_max_int,
-            topic_ids: array_or_string,
             category: string,
-            order: array_or_string,  # This now allows arrays
-            ascending: true_or_false,
-            min_posts: zero_up_to_max_int,
-            max_posts: zero_up_to_max_int,
-            status: string,
-            filter: string,
-            state: string,
-            search: string,
-            q: string,
+            exclude_tag: string,
             f: string,
-            subset: string,
+            filter: string,
             group_name: string,
-            tags: array_or_string,
             match_all_tags: true_or_false,
+            max_posts: zero_up_to_max_int,
+            min_posts: zero_up_to_max_int,
             no_subcategories: true_or_false,
             no_tags: true_or_false,
-            exclude_tag: string,
+            order: array_or_string,
+            page: zero_up_to_max_int,
+            per_page: one_up_to_one_hundred,
+            q: string,
+            search: string,
+            state: string,
+            status: string,
+            subset: string,
+            tags: array_or_string,
+            topic_ids: array_or_string,
+            ascending: true_or_false,
           }
         end
     end
 
-    # Override the apply_ordering method to support chained ordering
     def apply_ordering(result, options = {})
       order_option = options[:order]
       sort_dir = (options[:ascending] == "true") ? "ASC" : "DESC"
@@ -79,7 +78,6 @@ after_initialize do
         return result.order(order_clauses.join(", "))
       end
 
-      # Fall back to original behavior for non-array orders
       new_result =
         DiscoursePluginRegistry.apply_modifier(
           :topic_query_apply_ordering_result,
@@ -90,7 +88,6 @@ after_initialize do
           self,
         )
       return new_result if !new_result.nil? && new_result != result
-      
       sort_column = SORTABLE_MAPPING[order_option] || "default"
 
       # If we are sorting in the default order desc, we should consider including pinned
